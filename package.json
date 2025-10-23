@@ -1,5 +1,5 @@
 {
-  "name": "@esf/better-auth-hedera",
+  "name": "@exponentialscience/better-auth-hedera",
   "version": "0.1.0",
   "description": "Hedera integration for better-auth",
   "keywords": [
