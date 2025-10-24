@@ -192,7 +192,7 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
             const verified = await options.verifyMessage({
               message,
               signature,
-              address: walletAddress,
+              address: rawWalletAddress,
               chainId,
               cacao: {
                 h: { t: "caip122" },
