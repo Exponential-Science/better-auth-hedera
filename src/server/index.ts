@@ -5,6 +5,7 @@ import { createAuthEndpoint } from "better-auth/api";
 import * as z from "zod";
 import { toChecksumAddress } from "../utils/hashing";
 import { getOrigin } from "../utils/url";
+import { base64ToSignature } from "../utils/signature";
 import { HederaChainId } from "../types";
 import { BASE_ERROR_CODES } from "better-auth";
 import { createEmailVerificationToken } from "better-auth/api";
@@ -88,7 +89,7 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
           body: z
             .object({
               message: z.string().min(1),
-              signature: z.instanceof(Uint8Array),
+              signature: z.string().min(1, "Signature is required"),
               walletAddress: z
                 .string()
                 .regex(
@@ -123,7 +124,7 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
             $Infer: {
               body: {} as {
                 message: string;
-                signature: Uint8Array;
+                signature: string;
                 walletAddress: string;
                 chainId: HederaChainId;
                 email?: string;
@@ -140,13 +141,17 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
         async (ctx) => {
           const {
             message,
-            signature,
+            signature: signatureBase64,
             walletAddress: rawWalletAddress,
             chainId,
             email,
             data,
             callbackURL,
           } = ctx.body;
+
+          // Convert base64 signature to Uint8Array
+          const signature = base64ToSignature(signatureBase64);
+
           const checksumResult = toChecksumAddress(chainId, rawWalletAddress);
 
           if (!checksumResult.isValid) {

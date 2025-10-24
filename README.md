@@ -93,16 +93,24 @@ if (data) {
 }
 ```
 
-### Sign In with Ethereum
+### Sign In with Hedera
 
 After generating a nonce and creating a SIWH message, verify the signature to authenticate:
 
 ```typescript
+import { signatureToBase64 } from "@esf/better-auth-hedera";
+
+// Get signature from wallet (e.g., HashConnect)
+const signatureUint8Array = await hashconnect.signMessages(accountId, message);
+
+// Convert Uint8Array to base64 string for transmission
+const signatureBase64 = signatureToBase64(signatureUint8Array);
+
 const { data, error } = await authClient.siwh.verify({
   message: "Your SIWH message string",
   walletAddress: "0.0.9167913",
   chainId: "hedera:mainnet",
-  signature: "The signature from the user's wallet",
+  signature: signatureBase64, // base64 encoded signature string
   email: "user@example.com", // optional, required if anonymous is false
   callbackURL: "/dashboard", // optional, redirect URL after sign-in
   data: {
@@ -113,6 +121,58 @@ const { data, error } = await authClient.siwh.verify({
 
 if (data) {
   console.log("Authentication successful:", data.user);
+}
+```
+
+### Complete Example with HashConnect
+
+Here's a complete example showing the full authentication flow with HashConnect:
+
+```typescript
+import { signatureToBase64 } from "@esf/better-auth-hedera";
+import { HashConnect } from "hashconnect";
+
+async function signInWithHedera() {
+  const hashconnect = new HashConnect();
+  const accountId = "0.0.9167913";
+  const chainId = "hedera:testnet";
+
+  // Step 1: Get nonce from server
+  const { data: nonceData } = await authClient.siwh.getNonce({
+    walletAddress: accountId,
+    chainId: chainId,
+  });
+
+  if (!nonceData) {
+    console.error("Failed to get nonce");
+    return;
+  }
+
+  // Step 2: Create SIWH message
+  const message = `Sign in to MyApp\n\nNonce: ${nonceData.nonce}`;
+
+  // Step 3: Sign message with wallet
+  const signatureUint8Array = await hashconnect.signMessages(
+    accountId,
+    message
+  );
+
+  // Step 4: Convert signature to base64
+  const signatureBase64 = signatureToBase64(signatureUint8Array);
+
+  // Step 5: Verify signature and authenticate
+  const { data, error } = await authClient.siwh.verify({
+    message,
+    walletAddress: accountId,
+    chainId: chainId,
+    signature: signatureBase64,
+  });
+
+  if (data) {
+    console.log("Successfully signed in:", data.user);
+  } else {
+    console.error("Sign in failed:", error);
+  }
 }
 ```
 
@@ -146,6 +206,35 @@ export const authClient = createAuthClient({
   ],
 });
 ```
+
+## Utility Functions
+
+### Signature Conversion
+
+The library provides utility functions to convert between `Uint8Array` and base64 string formats for signatures:
+
+#### `signatureToBase64(signature: Uint8Array): string`
+
+Converts a `Uint8Array` signature (from HashConnect or other wallets) to a base64 string for HTTP transmission.
+
+```typescript
+import { signatureToBase64 } from "@esf/better-auth-hedera";
+
+const signature = await hashconnect.signMessages(accountId, message);
+const signatureString = signatureToBase64(signature);
+```
+
+#### `base64ToSignature(signature: string): Uint8Array`
+
+Converts a base64 string signature back to `Uint8Array`. This is used internally by the server but can be useful for verification purposes.
+
+```typescript
+import { base64ToSignature } from "@esf/better-auth-hedera";
+
+const signatureUint8Array = base64ToSignature(signatureBase64);
+```
+
+**Note:** The server automatically handles the conversion from base64 to `Uint8Array`, so you only need to use `signatureToBase64()` on the client side.
 
 ## Schema
 
