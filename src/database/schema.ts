@@ -16,7 +16,7 @@ export const schema = {
         required: true,
       },
       chainId: {
-        type: "number",
+        type: "string",
         required: true,
       },
       isPrimary: {
