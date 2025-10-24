@@ -16,13 +16,13 @@ Hedera blockchain integration plugin for [better-auth](https://github.com/better
 ## Installation
 
 ```bash
-npm install @esf/better-auth-hedera
+npm install @exponentialscience/better-auth-hedera
 # or
-yarn add @esf/better-auth-hedera
+yarn add @exponentialscience/better-auth-hedera
 # or
-pnpm add @esf/better-auth-hedera
+pnpm add @exponentialscience/better-auth-hedera
 # or
-bun add @esf/better-auth-hedera
+bun add @exponentialscience/better-auth-hedera
 ```
 
 ## Setup
@@ -31,7 +31,7 @@ bun add @esf/better-auth-hedera
 
 ```typescript
 import { betterAuth } from "better-auth";
-import { siwh } from "@esf/better-auth-hedera/server";
+import { siwh } from "@exponentialscience/better-auth-hedera/server";
 
 export const auth = betterAuth({
   // ... your better-auth config
@@ -69,7 +69,7 @@ export const auth = betterAuth({
 
 ```typescript
 import { createAuthClient } from "better-auth/client";
-import { siwhClient } from "@esf/better-auth-hedera/client";
+import { siwhClient } from "@exponentialscience/better-auth-hedera/client";
 
 export const authClient = createAuthClient({
   plugins: [siwhClient()],
@@ -98,7 +98,7 @@ if (data) {
 After generating a nonce and creating a SIWH message, verify the signature to authenticate:
 
 ```typescript
-import { signatureToBase64 } from "@esf/better-auth-hedera";
+import { signatureToBase64 } from "@exponentialscience/better-auth-hedera";
 
 // Get signature from wallet (e.g., HashConnect)
 const signatureUint8Array = await hashconnect.signMessages(accountId, message);
@@ -129,7 +129,7 @@ if (data) {
 Here's a complete example showing the full authentication flow with HashConnect:
 
 ```typescript
-import { signatureToBase64 } from "@esf/better-auth-hedera";
+import { signatureToBase64 } from "@exponentialscience/better-auth-hedera";
 import { HashConnect } from "hashconnect";
 
 async function signInWithHedera() {
@@ -196,7 +196,7 @@ The SIWH client plugin doesn't require any configuration options, but you can pa
 
 ```typescript
 import { createAuthClient } from "better-auth/client";
-import { siwhClient } from "@esf/better-auth-hedera/client";
+import { siwhClient } from "@exponentialscience/better-auth-hedera/client";
 
 export const authClient = createAuthClient({
   plugins: [
@@ -218,7 +218,7 @@ The library provides utility functions to convert between `Uint8Array` and base6
 Converts a `Uint8Array` signature (from HashConnect or other wallets) to a base64 string for HTTP transmission.
 
 ```typescript
-import { signatureToBase64 } from "@esf/better-auth-hedera";
+import { signatureToBase64 } from "@exponentialscience/better-auth-hedera";
 
 const signature = await hashconnect.signMessages(accountId, message);
 const signatureString = signatureToBase64(signature);
@@ -229,7 +229,7 @@ const signatureString = signatureToBase64(signature);
 Converts a base64 string signature back to `Uint8Array`. This is used internally by the server but can be useful for verification purposes.
 
 ```typescript
-import { base64ToSignature } from "@esf/better-auth-hedera";
+import { base64ToSignature } from "@exponentialscience/better-auth-hedera";
 
 const signatureUint8Array = base64ToSignature(signatureBase64);
 ```
@@ -254,7 +254,7 @@ The SIWH plugin adds a `walletAddress` table to store user wallet associations (
 The plugin supports all Hedera networks:
 
 ```typescript
-import { HederaChainId } from "@esf/better-auth-hedera";
+import { HederaChainId } from "@exponentialscience/better-auth-hedera";
 
 // Available chain IDs:
 HederaChainId.Mainnet; // "hedera:mainnet"
