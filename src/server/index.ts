@@ -181,9 +181,8 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
             // Ensure nonce is valid and not expired
             if (!verification || new Date() > verification.expiresAt) {
               throw new APIError("UNAUTHORIZED", {
-                message: "Unauthorized: Invalid or expired nonce",
+                message: "Invalid or expired nonce",
                 status: 401,
-                code: "UNAUTHORIZED_INVALID_OR_EXPIRED_NONCE",
               });
             }
 
@@ -212,7 +211,7 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
 
             if (!verified) {
               throw new APIError("UNAUTHORIZED", {
-                message: "Unauthorized: Invalid SIWH signature",
+                message: "Invalid SIWH signature",
                 status: 401,
               });
             }
@@ -276,7 +275,7 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
               // No user found, check if auto sign up is enabled
               if (!options.autoSignUp) {
                 throw new APIError("UNAUTHORIZED", {
-                  message: "Unauthorized: No user found",
+                  message: BASE_ERROR_CODES.USER_NOT_FOUND,
                   status: 401,
                 });
               }
@@ -284,9 +283,21 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
               // Create new user if none exists
               const domain =
                 options.emailDomainName ?? getOrigin(ctx.context.baseURL);
+
               // Use checksummed address for email generation
               const userEmail =
                 !isAnon && email ? email : `${walletAddress}@${domain}`;
+
+              // Check if user with this email already exists
+              const dbUser = await ctx.context.internalAdapter.findUserByEmail(
+                userEmail
+              );
+              if (dbUser?.user) {
+                throw new APIError("UNPROCESSABLE_ENTITY", {
+                  message:
+                    BASE_ERROR_CODES.USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL,
+                });
+              }
 
               user = await ctx.context.internalAdapter.createUser({
                 name: data?.name ?? walletAddress,
@@ -439,10 +450,10 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
             });
           } catch (error: unknown) {
             if (error instanceof APIError) throw error;
-            throw new APIError("UNAUTHORIZED", {
+            throw new APIError("INTERNAL_SERVER_ERROR", {
               message: "Something went wrong. Please try again later.",
               error: error instanceof Error ? error.message : "Unknown error",
-              status: 401,
+              status: 500,
             });
           }
         }
