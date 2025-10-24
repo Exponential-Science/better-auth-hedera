@@ -83,7 +83,7 @@ export const authClient = createAuthClient({
 Before signing a SIWH message, you need to generate a nonce for the wallet address:
 
 ```typescript
-const { data, error } = await authClient.siwh.getNonce({
+const { data, error } = await authClient.siwh.nonce({
   walletAddress: "0.0.9167913",
   chainId: "hedera:mainnet",
 });
@@ -138,7 +138,7 @@ async function signInWithHedera() {
   const chainId = "hedera:testnet";
 
   // Step 1: Get nonce from server
-  const { data: nonceData } = await authClient.siwh.getNonce({
+  const { data: nonceData } = await authClient.siwh.nonce({
     walletAddress: accountId,
     chainId: chainId,
   });
