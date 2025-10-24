@@ -42,8 +42,10 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
           body: z.object({
             walletAddress: z
               .string()
-              .regex(/^0[xX][a-fA-F0-9]{40}$/i)
-              .length(42),
+              .regex(
+                /^(0|(?:[1-9]\d*))\.(0|(?:[1-9]\d*))\.(0|(?:[1-9]\d*))$/,
+                "Invalid Hedera account ID format. Expected format: 0.0.123"
+              ),
             chainId: z
               .enum([
                 HederaChainId.Mainnet,
