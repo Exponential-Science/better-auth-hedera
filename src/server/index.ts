@@ -86,7 +86,7 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
           body: z
             .object({
               message: z.string().min(1),
-              signature: z.string().min(1),
+              signature: z.instanceof(Uint8Array),
               walletAddress: z
                 .string()
                 .regex(
@@ -121,7 +121,7 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
             $Infer: {
               body: {} as {
                 message: string;
-                signature: string;
+                signature: Uint8Array;
                 walletAddress: string;
                 chainId: HederaChainId;
                 email?: string;

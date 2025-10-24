@@ -39,14 +39,14 @@ interface Cacao {
   p: CacaoPayload;
   s: {
     t: "ed25519" | "ecdsa_secp256k1"; // NOT "eip191" or "eip1271"
-    s: string;
+    s: Uint8Array;
     m?: string;
   };
 }
 
 export interface SIWHVerifyMessageArgs {
   message: string;
-  signature: string;
+  signature: Uint8Array;
   address: string;
   chainId: string;
   cacao?: Cacao;
