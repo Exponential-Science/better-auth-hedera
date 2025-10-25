@@ -461,5 +461,171 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
           }
         }
       ),
+      linkSiwhWallet: createAuthEndpoint(
+        "/siwh/link",
+        {
+          method: "POST",
+          body: z.object({
+            message: z.string().min(1),
+            signature: z.string().min(1, "Signature is required"),
+            walletAddress: z
+              .string()
+              .regex(
+                /^(0|(?:[1-9]\d*))\.(0|(?:[1-9]\d*))\.(0|(?:[1-9]\d*))$/,
+                "Invalid Hedera account ID format. Expected format: 0.0.123"
+              ),
+            chainId: z
+              .enum([
+                HederaChainId.Mainnet,
+                HederaChainId.Testnet,
+                HederaChainId.Previewnet,
+                HederaChainId.Devnet,
+              ])
+              .optional()
+              .default(HederaChainId.Mainnet),
+          }),
+          requireHeaders: true,
+        },
+        async (ctx) => {
+          const {
+            message,
+            signature: signatureBase64,
+            walletAddress: rawWalletAddress,
+            chainId,
+          } = ctx.body;
+
+          // 1. Get current user from session
+          const session = ctx.context.session;
+          if (!session?.user) {
+            throw new APIError("UNAUTHORIZED", {
+              message: "You must be signed in to link a wallet",
+              status: 401,
+            });
+          }
+
+          // Convert base64 signature to Uint8Array
+          const signature = base64ToSignature(signatureBase64);
+
+          const checksumResult = toChecksumAddress(chainId, rawWalletAddress);
+
+          if (!checksumResult.isValid) {
+            throw new APIError("BAD_REQUEST", {
+              message: "Invalid wallet address",
+              status: 400,
+            });
+          }
+
+          const walletAddress = checksumResult.withChecksumFormat;
+
+          try {
+            // 2. Find stored nonce with wallet address and chain ID context
+            const verification =
+              await ctx.context.internalAdapter.findVerificationValue(
+                `siwh:${walletAddress}:${chainId}`
+              );
+
+            // Ensure nonce is valid and not expired
+            if (!verification || new Date() > verification.expiresAt) {
+              throw new APIError("UNAUTHORIZED", {
+                message: "Invalid or expired nonce",
+                status: 401,
+              });
+            }
+
+            // 3. Verify SIWH message
+            const { value: nonce } = verification;
+            const verified = await options.verifyMessage({
+              message,
+              signature,
+              address: rawWalletAddress,
+              chainId,
+              cacao: {
+                h: { t: "caip122" },
+                p: {
+                  domain: options.domain,
+                  aud: options.domain,
+                  nonce,
+                  iss: options.domain,
+                  version: "1",
+                },
+                s: {
+                  t: "ed25519",
+                  s: signature,
+                },
+              },
+            });
+
+            if (!verified) {
+              throw new APIError("UNAUTHORIZED", {
+                message: "Invalid SIWH signature",
+                status: 401,
+              });
+            }
+
+            // Clean up used nonce
+            await ctx.context.internalAdapter.deleteVerificationValue(
+              verification.id
+            );
+
+            // 4. Check if wallet is already linked to ANY user
+            const existingWallet: WalletAddress | null =
+              await ctx.context.adapter.findOne({
+                model: "walletAddress",
+                where: [
+                  { field: "address", operator: "eq", value: walletAddress },
+                  { field: "chainId", operator: "eq", value: chainId },
+                ],
+              });
+
+            if (existingWallet) {
+              if (existingWallet.userId === session.user.id) {
+                throw new APIError("BAD_REQUEST", {
+                  message: "This wallet is already linked to your account",
+                  status: 400,
+                });
+              } else {
+                throw new APIError("CONFLICT", {
+                  message: "This wallet is already linked to another account",
+                  status: 409,
+                });
+              }
+            }
+
+            // 5. Link wallet to current user
+            await ctx.context.adapter.create({
+              model: "walletAddress",
+              data: {
+                userId: session.user.id,
+                address: walletAddress,
+                chainId,
+                isPrimary: false, // Linked wallets are not primary by default
+                createdAt: new Date(),
+              },
+            });
+
+            // 6. Create account record for this wallet+chain combination
+            await ctx.context.internalAdapter.createAccount({
+              userId: session.user.id,
+              providerId: "siwh",
+              accountId: `${walletAddress}:${chainId}`,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            });
+
+            return ctx.json({
+              success: true,
+              walletAddress,
+              chainId,
+            });
+          } catch (error: unknown) {
+            if (error instanceof APIError) throw error;
+            throw new APIError("INTERNAL_SERVER_ERROR", {
+              message: "Something went wrong. Please try again later.",
+              error: error instanceof Error ? error.message : "Unknown error",
+              status: 500,
+            });
+          }
+        }
+      ),
     },
   } satisfies BetterAuthPlugin);

@@ -124,6 +124,45 @@ if (data) {
 }
 ```
 
+### Link Hedera Wallet to Existing Account
+
+If a user is already signed in with email/password (or another provider), they can link their Hedera wallet to their existing account:
+
+```typescript
+import { signatureToBase64 } from "@exponentialscience/better-auth-hedera";
+
+// User must be already signed in
+// Step 1: Get nonce
+const { data: nonceData } = await authClient.siwh.nonce({
+  walletAddress: "0.0.9167913",
+  chainId: "hedera:mainnet",
+});
+
+// Step 2: Create SIWH message and sign with wallet
+const message = `Link wallet to MyApp\n\nNonce: ${nonceData.nonce}`;
+const signatureUint8Array = await hashconnect.signMessages(accountId, message);
+const signatureBase64 = signatureToBase64(signatureUint8Array);
+
+// Step 3: Link wallet to current user
+const { data, error } = await authClient.siwh.link({
+  message,
+  walletAddress: "0.0.9167913",
+  chainId: "hedera:mainnet",
+  signature: signatureBase64,
+});
+
+if (data) {
+  console.log("Wallet linked successfully:", data);
+}
+```
+
+**Important Notes:**
+
+- User must be authenticated (have an active session) to link a wallet
+- A wallet can only be linked to one account
+- If the wallet is already linked to another account, you'll receive a `CONFLICT` error
+- If the wallet is already linked to the current account, you'll receive a `BAD_REQUEST` error
+
 ### Complete Example with HashConnect
 
 Here's a complete example showing the full authentication flow with HashConnect:
