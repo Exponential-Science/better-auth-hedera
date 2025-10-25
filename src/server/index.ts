@@ -506,7 +506,7 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
           }
 
           // 2. Prevent anonymous users from linking wallets
-          if (session.user.isAnonymous) {
+          if (session.user?.isAnonymous) {
             throw new APIError("FORBIDDEN", {
               message:
                 "Anonymous users cannot link wallets. Please create a permanent account first.",
