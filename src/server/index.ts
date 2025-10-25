@@ -700,7 +700,7 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
 
             const accountExist = accounts.find(
               (account) =>
-                account.accountId === walletAddress &&
+                account.accountId === `${walletAddress}:${chainId}` &&
                 account.providerId === "siwh"
             );
             if (!accountExist) {
