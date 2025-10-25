@@ -719,7 +719,7 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
             });
 
             return ctx.json({
-              status: true,
+              success: true,
             });
           } catch (error: unknown) {
             if (error instanceof APIError) throw error;
