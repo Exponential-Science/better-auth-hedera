@@ -159,6 +159,7 @@ if (data) {
 **Important Notes:**
 
 - User must be authenticated (have an active session) to link a wallet
+- **Anonymous users cannot link wallets** - If you're using the [anonymous plugin](https://www.better-auth.com/docs/plugins/anonymous), users must create a permanent account before linking a wallet
 - A wallet can only be linked to one account
 - If the wallet is already linked to another account, you'll receive a `CONFLICT` error
 - If the wallet is already linked to the current account, you'll receive a `BAD_REQUEST` error

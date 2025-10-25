@@ -10,6 +10,7 @@ import { HederaChainId } from "../types";
 import { BASE_ERROR_CODES } from "better-auth";
 import { createEmailVerificationToken } from "better-auth/api";
 import { setSessionCookie } from "better-auth/cookies";
+import { sessionMiddleware } from "better-auth/api";
 
 // Types
 import type {
@@ -465,6 +466,7 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
         "/siwh/link",
         {
           method: "POST",
+          requireHeaders: true,
           body: z.object({
             message: z.string().min(1),
             signature: z.string().min(1, "Signature is required"),
@@ -484,7 +486,7 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
               .optional()
               .default(HederaChainId.Mainnet),
           }),
-          requireHeaders: true,
+          use: [sessionMiddleware],
         },
         async (ctx) => {
           const {
@@ -494,12 +496,21 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
             chainId,
           } = ctx.body;
 
-          // 1. Get current user from session
+          // 1. Get and validate current user session
           const session = ctx.context.session;
           if (!session?.user) {
             throw new APIError("UNAUTHORIZED", {
               message: "You must be signed in to link a wallet",
               status: 401,
+            });
+          }
+
+          // 2. Prevent anonymous users from linking wallets
+          if (session.user.isAnonymous) {
+            throw new APIError("FORBIDDEN", {
+              message:
+                "Anonymous users cannot link wallets. Please create a permanent account first.",
+              status: 403,
             });
           }
 
@@ -518,7 +529,7 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
           const walletAddress = checksumResult.withChecksumFormat;
 
           try {
-            // 2. Find stored nonce with wallet address and chain ID context
+            // 3. Find stored nonce with wallet address and chain ID context
             const verification =
               await ctx.context.internalAdapter.findVerificationValue(
                 `siwh:${walletAddress}:${chainId}`
@@ -532,7 +543,7 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
               });
             }
 
-            // 3. Verify SIWH message
+            // 4. Verify SIWH message
             const { value: nonce } = verification;
             const verified = await options.verifyMessage({
               message,
@@ -567,7 +578,7 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
               verification.id
             );
 
-            // 4. Check if wallet is already linked to ANY user
+            // 5. Check if wallet is already linked to ANY user
             const existingWallet: WalletAddress | null =
               await ctx.context.adapter.findOne({
                 model: "walletAddress",
@@ -591,7 +602,7 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
               }
             }
 
-            // 5. Link wallet to current user
+            // 6. Link wallet to current user
             await ctx.context.adapter.create({
               model: "walletAddress",
               data: {
@@ -603,7 +614,7 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
               },
             });
 
-            // 6. Create account record for this wallet+chain combination
+            // 7. Create account record for this wallet+chain combination
             await ctx.context.internalAdapter.createAccount({
               userId: session.user.id,
               providerId: "siwh",
