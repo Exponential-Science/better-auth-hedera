@@ -105,6 +105,7 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
                 ])
                 .optional()
                 .default(HederaChainId.Mainnet),
+              isSignUp: z.boolean().optional().default(false),
               email: z.email().optional(),
               callbackURL: z
                 .string()
@@ -127,6 +128,7 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
                 signature: string;
                 walletAddress: string;
                 chainId: HederaChainId;
+                isSignUp: boolean;
                 email?: string;
                 callbackURL?: string;
                 data?: {
@@ -144,6 +146,7 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
             signature: signatureBase64,
             walletAddress: rawWalletAddress,
             chainId,
+            isSignUp,
             email,
             data,
             callbackURL,
@@ -273,7 +276,7 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
 
             if (!user) {
               // No user found, check if auto sign up is enabled
-              if (!options.autoSignUp) {
+              if (!options.autoSignUp && !isSignUp) {
                 throw new APIError("UNAUTHORIZED", {
                   message: BASE_ERROR_CODES.USER_NOT_FOUND,
                   status: 401,
