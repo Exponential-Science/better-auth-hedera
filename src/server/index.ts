@@ -128,7 +128,7 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
                 signature: string;
                 walletAddress: string;
                 chainId: HederaChainId;
-                isSignUp: boolean;
+                isSignUp?: boolean;
                 email?: string;
                 callbackURL?: string;
                 data?: {
