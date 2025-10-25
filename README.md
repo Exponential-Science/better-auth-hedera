@@ -156,6 +156,21 @@ if (data) {
 }
 ```
 
+### Unlink Hedera Wallet from Account
+
+Users can unlink their Hedera wallet from their account at any time:
+
+```typescript
+const { data, error } = await authClient.siwh.unlink({
+  walletAddress: "0.0.9167913",
+  chainId: "hedera:mainnet",
+});
+
+if (data) {
+  console.log("Wallet unlinked successfully:", data);
+}
+```
+
 **Important Notes:**
 
 - User must be authenticated (have an active session) to link a wallet
