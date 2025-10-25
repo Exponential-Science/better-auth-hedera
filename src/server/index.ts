@@ -638,5 +638,98 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
           }
         }
       ),
+      unlinkSiwhWallet: createAuthEndpoint(
+        "/siwh/unlink",
+        {
+          method: "POST",
+          requireHeaders: true,
+          body: z.object({
+            walletAddress: z
+              .string()
+              .regex(
+                /^(0|(?:[1-9]\d*))\.(0|(?:[1-9]\d*))\.(0|(?:[1-9]\d*))$/,
+                "Invalid Hedera account ID format. Expected format: 0.0.123"
+              ),
+            chainId: z
+              .enum([
+                HederaChainId.Mainnet,
+                HederaChainId.Testnet,
+                HederaChainId.Previewnet,
+                HederaChainId.Devnet,
+              ])
+              .optional()
+              .default(HederaChainId.Mainnet),
+          }),
+          use: [sessionMiddleware],
+        },
+        async (ctx) => {
+          const { walletAddress: rawWalletAddress, chainId } = ctx.body;
+
+          // 1. Get and validate current user session
+          const session = ctx.context.session;
+          if (!session?.user) {
+            throw new APIError("UNAUTHORIZED", {
+              message: "You must be signed in to link a wallet",
+              status: 401,
+            });
+          }
+
+          const checksumResult = toChecksumAddress(chainId, rawWalletAddress);
+
+          if (!checksumResult.isValid) {
+            throw new APIError("BAD_REQUEST", {
+              message: "Invalid wallet address",
+              status: 400,
+            });
+          }
+
+          const walletAddress = checksumResult.withChecksumFormat;
+
+          try {
+            const accounts = await ctx.context.internalAdapter.findAccounts(
+              ctx.context.session.user.id
+            );
+            if (
+              accounts.length === 1 &&
+              !ctx.context.options.account?.accountLinking?.allowUnlinkingAll
+            ) {
+              throw new APIError("BAD_REQUEST", {
+                message: BASE_ERROR_CODES.FAILED_TO_UNLINK_LAST_ACCOUNT,
+              });
+            }
+
+            const accountExist = accounts.find(
+              (account) =>
+                account.accountId === walletAddress &&
+                account.providerId === "siwh"
+            );
+            if (!accountExist) {
+              throw new APIError("BAD_REQUEST", {
+                message: BASE_ERROR_CODES.ACCOUNT_NOT_FOUND,
+              });
+            }
+
+            await ctx.context.internalAdapter.deleteAccount(accountExist.id);
+            await ctx.context.adapter.delete({
+              model: "walletAddress",
+              where: [
+                { field: "address", operator: "eq", value: walletAddress },
+                { field: "chainId", operator: "eq", value: chainId },
+              ],
+            });
+
+            return ctx.json({
+              status: true,
+            });
+          } catch (error: unknown) {
+            if (error instanceof APIError) throw error;
+            throw new APIError("INTERNAL_SERVER_ERROR", {
+              message: "Something went wrong. Please try again later.",
+              error: error instanceof Error ? error.message : "Unknown error",
+              status: 500,
+            });
+          }
+        }
+      ),
     },
   } satisfies BetterAuthPlugin);
