@@ -335,7 +335,7 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
                 );
                 await ctx.context.internalAdapter.linkAccount({
                   userId: user.id,
-                  providerId: "credentials",
+                  providerId: "credential",
                   accountId: user.id,
                   password: hashedPassword,
                 });
