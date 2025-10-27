@@ -289,8 +289,7 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
                 options.emailDomainName ?? getOrigin(ctx.context.baseURL);
 
               // Use checksummed address for email generation
-              const userEmail =
-                !isAnon && email ? email : `${walletAddress}@${domain}`;
+              const userEmail = email ? email : `${walletAddress}@${domain}`;
 
               // Check if user with this email already exists
               const dbUser = await ctx.context.internalAdapter.findUserByEmail(
