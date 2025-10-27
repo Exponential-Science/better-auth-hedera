@@ -1,6 +1,6 @@
 {
   "name": "@exponentialscience/better-auth-hedera",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Hedera integration for better-auth",
   "keywords": [
     "hedera",
