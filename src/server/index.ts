@@ -238,6 +238,14 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
                 ],
               });
 
+            // If isSignUp is true, we don't want to auto-link the wallet to an existing account
+            if (isSignUp && existingWalletAddress) {
+              throw new APIError("UNPROCESSABLE_ENTITY", {
+                message: "Wallet already linked to an account",
+                status: 422,
+              });
+            }
+
             if (existingWalletAddress) {
               // Get the user associated with this wallet address
               user = await ctx.context.adapter.findOne({
@@ -259,6 +267,13 @@ export const siwh = <O extends BetterAuthOptions>(options: SIWHPluginOptions) =>
                     { field: "address", operator: "eq", value: walletAddress },
                   ],
                 });
+
+              if (isSignUp && anyWalletAddress) {
+                throw new APIError("UNPROCESSABLE_ENTITY", {
+                  message: "Wallet already linked to an account",
+                  status: 422,
+                });
+              }
 
               if (anyWalletAddress) {
                 // Same address exists on different chain, get that user
