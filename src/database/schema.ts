@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2025 Exponential Science Foundation and contributors
 import type { BetterAuthPluginDBSchema } from "better-auth/db";
 
 export const schema = {

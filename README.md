@@ -1,4 +1,6 @@
-# Hedera Better Auth
+# Better Auth Hedera
+
+Better-Auth-Hedera Plugin is an open-source NPM Plugin built by **Exponential Science**, designed for developers who use better-auth for authentication to extend their services to enable hedera wallet login for their users
 
 Hedera blockchain integration plugin for [better-auth](https://github.com/better-auth/better-auth) - enabling Sign-In With Hedera (SIWH) authentication.
 
@@ -328,14 +330,22 @@ bun run build
 
 # The build process uses Bun's native bundler - no external tools needed!
 ```
+## Contributing
+
+We welcome open-source contributions!
+
+Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for our process.
+
+## Security
+To report a security issue, email [security@exponential.science](mailto:security@exponential.science).
+
+See [SECURITY.md](./SECURITY.md) for full details.
 
 ## License
 
-MIT © [Exponential Science](https://www.exp.science/)
+Licensed under the [Apache License 2.0](./LICENSE).
 
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
+© 2025 Exponential Science Foundation and contributors.
 
 ## Links
 

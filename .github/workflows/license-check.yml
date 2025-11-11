@@ -1,0 +1,19 @@
+name: License Compliance
+
+on: [push, pull_request]
+
+jobs:
+  license-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify SPDX headers
+        run: |
+          files=$(git ls-files | grep -E '\.(py|js|ts|go|java|rs|sh|yaml|yml)$' || true)
+          missing=0
+          for f in $files; do
+            if ! grep -q "SPDX-License-Identifier: Apache-2.0" "$f"; then
+              echo "Missing SPDX header in $f"; missing=1
+            fi
+          done
+          exit $missing
