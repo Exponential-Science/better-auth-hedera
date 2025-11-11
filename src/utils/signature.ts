@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2025 Exponential Science Foundation and contributors
 /**
  * Converts a Uint8Array signature to a base64 string
  * This is useful when working with hashconnect's signMessages function

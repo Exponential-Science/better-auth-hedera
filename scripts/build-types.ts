@@ -1,4 +1,6 @@
 #!/usr/bin/env bun
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2025 Exponential Science Foundation and contributors
 
 import { writeFileSync } from "fs";
 import { join } from "path";
