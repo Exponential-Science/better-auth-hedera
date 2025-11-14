@@ -337,7 +337,7 @@ We welcome open-source contributions!
 Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for our process.
 
 ## Security
-To report a security issue, email [security@exponential.science](mailto:security@exponential.science).
+To report a security issue, email [security@exp.science](mailto:security@exp.science).
 
 See [SECURITY.md](./SECURITY.md) for full details.
 
