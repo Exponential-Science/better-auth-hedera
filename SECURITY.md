@@ -2,7 +2,7 @@
 
 ## Reporting a Vulnerability
 If you discover a security issue, please do **not** open a public issue.  
-Email [**opensource@exponential.science**](mailto:opensource@exponential.science). with details and reproduction steps.
+Email [**opensource@exp.science**](mailto:opensource@exp.science). with details and reproduction steps.
 
 We will acknowledge receipt within 48 hours and coordinate disclosure.
 
@@ -17,4 +17,4 @@ Better-Auth-Hedera
 
 Copyright 2025 Exponential Science Foundation and contributors
 
-This product includes software developed by [Exponential Science](https://exponential.science).
+This product includes software developed by [Exponential Science](https://www.exp.science).

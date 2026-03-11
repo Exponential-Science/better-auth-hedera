@@ -22,4 +22,4 @@ We’re excited that you want to contribute!
 ### License
 By contributing, you agree your code will be released under the **Apache License 2.0.**
 
-Contact: [opensource@exponential.science](mailto:opensource@exponential.science)
+Contact: [opensource@exp.science](mailto:opensource@exp.science)
